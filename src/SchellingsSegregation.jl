@@ -5,12 +5,11 @@
 
 using Agents
 using Random
-using InteractiveDynamics
-# For non interactive CairoMakie is enough
-# using CairoMakie
-# For interactive plots use GLMakie
-using GLMakie
-using Statistics: mean 
+using InteractiveDynamics 
+using CairoMakie # For non interactive CairoMakie is enough
+# using GLMakie # For interactive plots we need to use GLMakie
+using Statistics: mean
+using Dates 
 
 mutable struct SchellingAgent <: AbstractAgent
     id::Int
@@ -19,10 +18,12 @@ mutable struct SchellingAgent <: AbstractAgent
     group::Int
 end
 
-@agent SchellingAgentM GridAgent{2} begin
-    mood::Bool
-    group::Int
-end
+# This was causing some weird problem when I try to use
+# it as part of a module.
+# @agent SchellingAgent GridAgent{2} begin
+#     mood::Bool
+#     group::Int
+# end
 
 function initialize(;
     numagents = 320,
@@ -73,25 +74,58 @@ function agent_step!(agent, model)
     return
 end
 
-# The agent data to collect each step
-x(agent) = agent.pos[1]
-adata = [(:mood, sum), (x, mean)]
-alabels = ["happy", "avg. x"]
+function video_filename(file_prefix)
+    file_prefix * Dates.format(Dates.now(),"yymmddHHMMSS") * ".mp4"
+end
 
-model = initialize(; numagents = 300)
+function run_model!(total_ticks, file_prefix)
+    # The agent data to collect each step
+    x(agent) = agent.pos[1]
+    adata = [(:mood, sum), (x, mean)]
+    alabels = ["happy", "avg. x"]
 
-groupcolor(a) = a.group == 1 ? :blue : :orange
-groupmarker(a) = a.group == 1 ? :circle : :rect
+    model = initialize(; numagents = 300)
+    video_model = deepcopy(model)
+
+    groupcolor(a) = a.group == 1 ? :blue : :orange
+    groupmarker(a) = a.group == 1 ? :circle : :rect
+    # A bit of a hack!
+    # Unfortunately the abm_video does not allow us to record data
+    # so, we are creating two copies of the same model and running
+    # them one after the other. The same number of timesteps
+    # as the model is deterministic because of the random-seed
+    # repeated runs should be exactly same and produce same results
+    data, _ = run!(model, agent_step!, total_ticks; adata)
+    filename = video_filename(file_prefix)
+    abm_video(
+        filename,
+        video_model,
+        agent_step!;
+        ac = groupcolor,
+        am = groupmarker,
+        as = 10,
+        framerate = 4,
+        frames = total_ticks + 1, # plus one to account for 0th frame
+        title = "Schelling's segregation model",
+        adata = adata,
+        alabels = alabels,
+        # There is a SPF (steps per frame param)
+        # That defaults to 1 and should never be changed for this hack to make sense
+    )
+    return (data, filename)
+end
+
+# (data, _) = run_model!(20,"schelling")
+# data
 
 # To create interactive application
-parange = Dict(:min_to_be_happy => 0:8)
+# parange = Dict(:min_to_be_happy => 0:8)
 
-figure, adf, mdf = abm_data_exploration(
-    model, agent_step!, dummystep, parange;
-    ac = groupcolor, am = groupmarker, as = 10,
-    adata, alabels
-)
-figure
+# figure, adf, mdf = abm_data_exploration(
+#     model, agent_step!, dummystep, parange;
+#     ac = groupcolor, am = groupmarker, as = 10,
+#     adata, alabels
+# )
 
 # To generate a static plot of the model
 
@@ -105,14 +139,3 @@ figure
 
 # To generate a video (post processed) of the ABM
 
-# abm_video(
-#     "schelling.mp4",
-#     model,
-#     agent_step!;
-#     ac = groupcolor,
-#     am = groupmarker,
-#     as = 10,
-#     framerate = 4,
-#     frames = 20,
-#     title = "Schelling's segregation model"
-# )

@@ -1,5 +1,7 @@
 module ABMExamples
 
-# Write your package code here.
+export run_model!
+
+include("SchellingsSegregation.jl")
 
 end
