@@ -2,12 +2,14 @@
 # 
 # This software is released under the MIT License.
 # https://opensource.org/licenses/MIT
+module SchellingExample
+
+export run_schelling_model!
 
 using Agents
 using Random
 using InteractiveDynamics 
-using CairoMakie # For non interactive CairoMakie is enough
-# using GLMakie # For interactive plots we need to use GLMakie
+using GLMakie
 using Statistics: mean
 using Dates 
 
@@ -78,7 +80,7 @@ function video_filename(file_prefix)
     file_prefix * Dates.format(Dates.now(),"yymmddHHMMSS") * ".mp4"
 end
 
-function run_model!(total_ticks, file_prefix)
+function run_schelling_model!(total_ticks, file_prefix)
     # The agent data to collect each step
     x(agent) = agent.pos[1]
     adata = [(:mood, sum), (x, mean)]
@@ -139,3 +141,4 @@ end
 
 # To generate a video (post processed) of the ABM
 
+end
