@@ -3,4 +3,5 @@
 *.jl.mem
 *.mp4
 *.gif
+*.png
 /docs/build/

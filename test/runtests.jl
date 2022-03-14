@@ -13,4 +13,14 @@ using Statistics: mean
         rounded = round(mean(ff_data.burnt_percentage), digits=2)
         @test rounded == 0.3
     end
+    @testset "HKOpinionDynamics.jl" begin
+        all_data = hk_model_run_and_plot!()
+        # we are testing only ϵ = 0.3, which is the last in the list
+        data_epsilon_03 = all_data[end]
+        rounded = round(
+            mean(data_epsilon_03.new_opinion),
+            digits=2
+        )
+        @test rounded == 0.54
+    end
 end
