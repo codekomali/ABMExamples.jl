@@ -8,8 +8,9 @@ export run_schelling_model!
 
 using Agents
 using Random
-using InteractiveDynamics 
-using GLMakie
+using InteractiveDynamics
+using CairoMakie 
+#using GLMakie # fails the CI tests (on linux container)
 using Statistics: mean
 using Dates 
 
