@@ -71,9 +71,7 @@ function model_run(; kwargs...)
     return agent_data
 end
 
-data = model_run()
-
-using Plots
+#data = model_run()
 
 plotsim(data, ϵ) = plot(
     data.step,
