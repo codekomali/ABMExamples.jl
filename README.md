@@ -6,7 +6,7 @@ This is a personal project to store examples that I build in the process of lear
 2. Forest Fire - Cellular Automata
 3. HK (Hegselmann and Krause) Opinion Dynamics
 4. Flocking (*in-progress*)
-5. Preadtor-Prey (*in-progress*)
+5. Predator-Prey (*in-progress*)
 
 [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://codekomali.github.io/ABMExamples.jl/stable)
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://codekomali.github.io/ABMExamples.jl/dev)
