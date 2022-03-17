@@ -23,4 +23,8 @@ using Statistics: mean
         )
         @test rounded == 0.54
     end
+    @testset "Flocking.jl" begin
+        run_flocking_example!()
+        @test isfile("flocking.mp4") == true
+    end
 end
