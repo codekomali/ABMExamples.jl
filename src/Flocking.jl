@@ -25,6 +25,12 @@ mutable struct Bird <: AbstractAgent
     visual_distance::Float64
 end
 
+function random_angle(rng)
+    rand_deg = rand(rng,0:360)
+    rad = deg2rad(rand_deg)
+    return (cos(rad), sin(rad))
+end
+
 function initialize_model(;
     n_birds = 100,
     speed = 1.0,
@@ -43,7 +49,8 @@ function initialize_model(;
         # the * 2 .-1 ensures that we are covering all 360deg
         # otherwise rand will only generate +ve numbers
         # which effectively locks us within 90*
-        vel = Tuple(rand(model.rng, 2) * 2 .- 1)
+        # vel = Tuple(rand(model.rng, 2) * 2 .- 1)
+        vel = random_angle(model.rng)
         add_agent!(
             model,
             vel,
