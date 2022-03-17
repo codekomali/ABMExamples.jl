@@ -9,9 +9,9 @@ using Statistics: mean
         @test mean(schelling_data.sum_mood) == 274.0
     end
     @testset "ForestFire.jl" begin
-        _,ff_data = run_forest_fire_model!()
+        _,ff_data = run_forest_fire_model!("forest_new.mp4")
         rounded = round(mean(ff_data.burnt_percentage), digits=2)
-        @test rounded == 0.3
+        @test rounded == 0.36
     end
     @testset "HKOpinionDynamics.jl" begin
         all_data = hk_model_run_and_plot!()

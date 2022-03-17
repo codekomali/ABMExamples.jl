@@ -10,6 +10,8 @@ export run_forest_fire_model!
 using Agents
 using Random
 using Plots
+using InteractiveDynamics
+using CairoMakie
 
 mutable struct Tree <: AbstractAgent
     id::Int
@@ -20,8 +22,8 @@ end
 function forest_fire(;
     density = 0.7,
     griddims = (100, 100)
-    )
-    space = GridSpace(griddims; periodic=false, metric= :euclidean)
+)
+    space = GridSpace(griddims; periodic = false, metric = :euclidean)
     forest = AgentBasedModel(Tree, space)
     # density is a probabilty of whether to add a tree
     for position in positions(forest)
@@ -48,9 +50,9 @@ function tree_step!(tree, forest)
 end
 
 function burnt_percentage(m)
-    burntTrees = count(t->t.status == :burnt, allagents(m))
+    burntTrees = count(t -> t.status == :burnt, allagents(m))
     totArea = length(positions(m))
-    return burntTrees/totArea
+    return burntTrees / totArea
 end
 
 function treecolor(a)
@@ -63,7 +65,9 @@ function treecolor(a)
     end
 end
 
-function run_forest_fire_model!()
+
+
+function run_forest_fire_model_old!()
     Random.seed!(2)
     forest = forest_fire()
     mdata = [burnt_percentage]
@@ -80,7 +84,40 @@ function run_forest_fire_model!()
     return (animated_gif, df)
 end
 
-#run_forest_fire_model!()
 
-#init_model_dataframe(forest,[burnt_percentage])
-end  
+
+function run_forest_fire_model!(file;frames=60,spf=1)
+    Random.seed!(2)
+    forest = forest_fire()
+    mdata = [burnt_percentage]
+    df = init_model_dataframe(forest, mdata)
+    # Create 'Step N' as the Observable title
+    s = Observable(0) # counter of current step
+    t = lift(x -> "step = " * string(x), s)
+    axiskwargs = (title = t, titlealign = :left) #title and position
+    # create figure of the first frame to feed it into record
+    fig, abmstepper = abm_plot(
+        forest;
+        ac = treecolor,
+        axiskwargs = axiskwargs,
+        ms = 5,
+        msw = 0
+    )
+    # record the animation Makie style
+    record(fig, file) do io
+        for j in 1:frames-1
+            recordframe!(io)
+            # MUST USE THE SAME ABMSTEPPER! otherwise frame won't update
+            step!(abmstepper, forest, tree_step!, dummystep, spf)
+            collect_model_data!(df,forest,mdata,j)
+            s[] += spf # update the observable step
+            #s[] = s[] # Not sure why?
+        end
+        recordframe!(io) # last frame
+    end
+    isfile(file) || error("file not created")
+    return (file,df)
+end
+
+#_,df = run_forest_fire_model!("forest_new.mp4")
+end
