@@ -105,6 +105,26 @@ function sheep_step!(sheep, model)
     end
 end
 
+
+function nearest_sheep_in_range(wolf, model; range=3)
+    agents = collect(nearby_agents(wolf,model,range))
+    sheeps = filter!(x -> x.type == :sheep, agents)
+    nearest_sheep = nothing
+    nearest_distance = Inf
+    for sheep in sheeps
+        edist = edistance(wolf, sheep, model)
+        if edist < nearest_distance
+            nearest_distance = edist
+            nearest_sheep = sheep
+        end
+    end
+    return nearest_sheep
+end
+
+# A minor improvement on wolf_step! :
+# if there are no sheep in the current position,
+# the wolf will walk towards a sheep in the vision range
+# instead of walking in a random direction
 function wolf_step!(wolf, model)
     wolf.energy -= 1
     agents = collect(agents_in_position(wolf.pos, model))
@@ -112,7 +132,13 @@ function wolf_step!(wolf, model)
     if isempty(dinner)
         walk!(wolf, rand, model)
     else
-        walk!(wolf, rand, model)
+        ns = nearest_sheep_in_range(wolf,model)
+        if ns === nothing
+            walk!(wolf, rand, model)
+        else
+            nsd = get_direction(wolf.pos,ns.pos,model)
+            walk!(wolf, nsd, model)
+        end
     end
     wolf_eat!(wolf, dinner, model)
     if wolf.energy < 0
@@ -177,9 +203,9 @@ sheep(a) = a.type == :sheep
 wolves(a) = a.type == :wolf
 count_grass(model) = count(model.fully_grown)
 
+# data to collect
 adata = [(sheep, count), (wolves, count)]
 mdata = [count_grass]
-#adf, mdf = run!(model, sheepwolf_step!, grass_step!, n; adata, mdata)
 
 function run_predatorprey_model!(;file="sheepwolf.mp4",frames=500,spf=1)
     model = initialize_model(
@@ -233,7 +259,7 @@ function plot_population_timeseries(adf, mdf; figfile="predatorprey.png")
     return figure
 end
 
-#_, adf, mdf = run_predatorprey_model!()
-#plot_population_timeseries(adf, mdf)
+# _, adf, mdf = run_predatorprey_model!()
+# plot_population_timeseries(adf, mdf)
 
 end
